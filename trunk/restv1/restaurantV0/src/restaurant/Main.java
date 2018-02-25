@@ -14,36 +14,47 @@ import static restaurant.Utils.*;
 public class Main {
 
     public static void main( String[] args ) {
-        Restaurant china = new Restaurant( "Mei Ling" );
-        china.printMenu();
-        china.openRestaurant();
-        Customer mrBig = new Customer(china.getMenuNumbers());
-        china.setCustomer( mrBig );
+        Restaurant restaurant = new Restaurant( "Donald's Doo Wop Dumplings" );
+        restaurant.printMenu();
+        restaurant.openRestaurant();
+        Customer mrBig = new Customer(restaurant.getMenuNumbers());
+        restaurant.setCustomer( mrBig );
+        
+        //TODO: delegate taking orders to the waiter class
+        //Waiter 1 takes the orders
+        
         try {
-            china.submitOrder( mrBig.wouldLike() );
+            restaurant.submitOrder( mrBig.wouldLike() );
+        } catch ( RestaurantException e ) {
+            System.out.println( e.getMessage() );
+        }
+        
+        try {
+            restaurant.submitOrder( mrBig.wouldLike() );
+        } catch ( RestaurantException e ) {
+            System.out.println( e.getMessage() );
+        }
+        
+        //Cook processes the orders and prepares the meals
+        new Cook("Louie").start();
+        restaurant.procesOrders();
+        
+        //Waiter 2 serves the meals
+        restaurant.serveReadyMeals();
+        
+        try {
+            restaurant.submitOrder( mrBig.wouldLike() );
         } catch ( RestaurantException e ) {
             System.out.println( e.getMessage() );
         }
         try {
-            china.submitOrder( mrBig.wouldLike() );
+            restaurant.submitOrder( mrBig.wouldLike() );
         } catch ( RestaurantException e ) {
             System.out.println( e.getMessage() );
         }
-        china.procesOrders();
-        china.serveReadyMeals();
-        try {
-            china.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
-        }
-        try {
-            china.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
-        }
-        china.procesOrders();
-        china.serveReadyMeals();
+        restaurant.procesOrders();
+        restaurant.serveReadyMeals();
         System.out.println( mrBig.areYouSattisfied("Are you sattisfied?") );
-        china.closeRestaurant();
+        restaurant.closeRestaurant();
     }
 }

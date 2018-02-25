@@ -53,4 +53,8 @@ class Utils {
     static void printSeparator( String centerText, char filler ) {
         System.out.println( createSeparator( centerText, filler ) );
     }
+    
+    static void printWhiteline() {
+        printSeparator(" ", ' ');
+    }
 }
