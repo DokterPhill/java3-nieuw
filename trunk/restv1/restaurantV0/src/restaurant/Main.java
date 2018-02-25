@@ -14,7 +14,7 @@ import static restaurant.Utils.*;
 public class Main {
 
     public static void main( String[] args ) {
-        Restaurant restaurant = new Restaurant( "Donald's Doo Wop Dumplings" );
+        Restaurant restaurant = new Restaurant( "Mei Ling" );
         restaurant.printMenu();
         restaurant.openRestaurant();
         Customer mrBig = new Customer(restaurant.getMenuNumbers());
