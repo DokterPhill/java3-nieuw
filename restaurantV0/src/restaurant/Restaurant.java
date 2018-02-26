@@ -61,6 +61,11 @@ public class Restaurant {
         return this;
     }
     private long totalCookTime = 0;
+    
+    private boolean isRestaurantOpen = false;
+    public boolean getIsRestaurantOpen() {
+        return isRestaurantOpen;
+    }
 
     /**
      * Construct a named restaurant.
@@ -269,6 +274,7 @@ public class Restaurant {
     private long startTime = 0;
 
     void closeRestaurant() {
+        isRestaurantOpen = false;
         printSeparator( this.toString() + "is closed", '#' );
         System.out.printf( "total cookingTime = %d milliseconds on %d meals.\n",
                 this.totalCookTime,
@@ -279,6 +285,7 @@ public class Restaurant {
     }
 
     void openRestaurant() {
+        isRestaurantOpen = true;
         startTime = System.currentTimeMillis();
         printSeparator( "Welcome, " + this.toString() + " is now open", '$' );
     }
