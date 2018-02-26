@@ -111,7 +111,7 @@ class Customer implements Iterable<int[][]> {
         System.out.println( "received:" + servedMap.toString() );
         return "You asked \"" + question + "\" " + ( orderedMap.snapShotEquals(
                 servedMap )
-                        ? "Yes, very. Thank you"
-                        : "No I missed some: " + orderedMap.snapShotDiff( servedMap ) );
+                        ? "Yes, very. Thank you\n"
+                        : "No I missed some: " + orderedMap.snapShotDiff( servedMap ) + "\n" );
     }
 }
