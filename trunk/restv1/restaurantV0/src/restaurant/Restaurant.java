@@ -135,6 +135,7 @@ public class Restaurant {
                 for ( int s = 0; s < servings; s++ ) {
                     System.out.println( customer.serveTo( notAvailable ) );
                 }
+                printWhiteline();
                 //                throw new RestaurantException( "Order nr. " + orderCount
                 //                        + ": a non existing meal (nr.=" + mealNR + ") ordered!" );
             } else {
@@ -197,7 +198,7 @@ public class Restaurant {
      * @param mealNR
      * @return the prepared meal.
      */
-    private Meal prepareMeal( int orderNR, int mealNR ) {
+    private synchronized Meal prepareMeal( int orderNR, int mealNR ) {
         Recipe recipe = recipes.get( mealNR );
         String mealName = recipe.getName();
         int procTime = recipe.getPreparationTime();
@@ -205,6 +206,11 @@ public class Restaurant {
             Thread.sleep( procTime );
             totalCookTime += procTime;
             mealsPreparedCount++;
+            
+            printSeparator("Order " + orderNR, '.');
+            printSeparator("Done! The cook has prepared " + mealName, '.');
+            printWhiteline();
+            
         } catch ( InterruptedException ex ) {
             Logger.getLogger( Restaurant.class.getName() ).
                     log( Level.SEVERE, null, ex );
@@ -247,11 +253,13 @@ public class Restaurant {
         for ( String line : menu ) {
             System.out.println( line );
         }
-        printSeparator( "We welcome you at restaurant " + name, '+' );
+        printSeparator( "", '+' );
+        printWhiteline();
+        //printSeparator( "We welcome you at restaurant " + name, '+' );
     }
     private double turnOver = 0.0D;
 
-    public void serveReadyMeals() {
+    public synchronized void serveReadyMeals() {
         printSeparator( "Pleased to serve your meals" );
         while ( this.hasMeals() ) {
             Meal meal = this.getNextMeal();
@@ -259,6 +267,7 @@ public class Restaurant {
             System.out.println( customer.serveTo( meal ) );
         }
         printSeparator( "Bon appetit" );
+        printWhiteline();
 
     }
 
@@ -282,12 +291,15 @@ public class Restaurant {
         System.out.printf( "restaurant %s was open for %d miliseconds\n",
                 this.name, ( System.currentTimeMillis() - startTime ) );
         System.out.printf( "Turnover this round: € %10.2f\n", turnOver );
+        printWhiteline();
     }
 
     void openRestaurant() {
         isRestaurantOpen = true;
         startTime = System.currentTimeMillis();
+        
         printSeparator( "Welcome, " + this.toString() + " is now open", '$' );
+        printWhiteline();
     }
 
     public Set<Integer> getMenuNumbers() {
