@@ -33,13 +33,14 @@ public class RestaurantThreaded {
         restaurant.setCustomer( mrBig );
         
         threadTakeOrders.start();
+        threadCookMeals.start();
+        threadServeMeals.start();
 
         try {
             threadTakeOrders.join();
             threadCookMeals.join();
             threadServeMeals.join();
         } catch (InterruptedException e) {
-            e.printStackTrace();
         }
         
         System.out.println(mrBig.areYouSattisfied("Are you sattisfied?"));
@@ -51,15 +52,11 @@ public class RestaurantThreaded {
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                threadCookMeals.start();
-                threadCookMeals.interrupt();
                 int numberOfOrders = 4; //(int)(Math.random() * 32);
                 for (int i = 0; i < numberOfOrders; i++) {
                     try {
                         restaurant.submitOrder(mrBig.wouldLike());
-                        if(threadCookMeals.isInterrupted()) {
-                            threadCookMeals.notify();
-                        }
+                        notifyAll();
                     } catch (RestaurantException e) {
                         System.out.println(e.getMessage());
                     }
@@ -73,15 +70,15 @@ public class RestaurantThreaded {
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                threadServeMeals.start();
-                threadServeMeals.interrupt();
-                while (restaurant.hasOrders()) {
-                    restaurant.procesOrders();
-                    if(threadServeMeals.isInterrupted()) {
-                        threadServeMeals.notify();
+                while (!restaurant.hasOrders()) {
+                    try {
+                        wait();
                     }
-                    threadCookMeals.interrupt();
+                    catch(InterruptedException e) {
+                    }
                 }
+                restaurant.procesOrders();
+                notifyAll();
             }
         });
     }
@@ -90,10 +87,15 @@ public class RestaurantThreaded {
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                while (restaurant.hasMeals()) {
-                    restaurant.serveReadyMeals();
-                    threadServeMeals.interrupt();
+                while (!restaurant.hasMeals()) {
+                    try {
+                        wait();
+                    }
+                    catch(InterruptedException e) {
+                    }
                 }
+                restaurant.serveReadyMeals();
+                notifyAll();
             }
         });
     }
