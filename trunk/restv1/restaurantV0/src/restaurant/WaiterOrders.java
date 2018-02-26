@@ -9,15 +9,15 @@ package restaurant;
  *
  * @author Peter Verstappen
  */
-public class Waiter extends Employee {
+public class WaiterOrders extends Employee {
 
-    public Waiter(String employeeName) {
+    public WaiterOrders(String employeeName) {
         super(employeeName, "Waiter");
     }
 
     @Override
     public void run() {
-        
+        throw new UnsupportedOperationException("TODO: delegate taking order functions from Main.java to this class");
     }
     
 }

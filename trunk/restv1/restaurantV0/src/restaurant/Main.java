@@ -20,41 +20,49 @@ public class Main {
         Customer mrBig = new Customer(restaurant.getMenuNumbers());
         restaurant.setCustomer( mrBig );
         
-        //TODO: delegate taking orders to the waiter class
-        //Waiter 1 takes the orders
-        
-        try {
-            restaurant.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
-        }
-        
-        try {
-            restaurant.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
-        }
+        //threadOrders deals with the orders of the customer.
+        Thread threadOrders = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (mrBig.iterator().hasNext()) {
+                    try {
+                        restaurant.submitOrder(mrBig.wouldLike());
+                    } catch (RestaurantException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
+        });
+        threadOrders.start();
         
         //Cook processes the orders and prepares the meals
-        new Cook("Louie").start();
-        restaurant.procesOrders();
+        Thread threadCook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(restaurant.getIsRestaurantOpen()) {
+                    if(restaurant.hasOrders()) {
+                        restaurant.procesOrders();
+                    }
+                }
+            }
+        });
+        threadCook.start();
         
-        //Waiter 2 serves the meals
-        restaurant.serveReadyMeals();
+        Thread threadServe = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (restaurant.getIsRestaurantOpen()) {
+                    if (restaurant.hasMeals()) {
+                        restaurant.serveReadyMeals();
+                    }
+                }
+            }
+        });
+        threadServe.start();
         
-        try {
-            restaurant.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
+        while(!threadOrders.isAlive() && !threadCook.isAlive() && !threadServe.isAlive()) {
+            System.out.println( mrBig.areYouSattisfied("Are you sattisfied?") );
+            restaurant.closeRestaurant();
         }
-        try {
-            restaurant.submitOrder( mrBig.wouldLike() );
-        } catch ( RestaurantException e ) {
-            System.out.println( e.getMessage() );
-        }
-        restaurant.procesOrders();
-        restaurant.serveReadyMeals();
-        System.out.println( mrBig.areYouSattisfied("Are you sattisfied?") );
-        restaurant.closeRestaurant();
     }
 }
