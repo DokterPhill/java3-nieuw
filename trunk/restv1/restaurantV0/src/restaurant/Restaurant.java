@@ -17,7 +17,9 @@ import static restaurant.Utils.*;
  * @author hom
  */
 public class Restaurant {
-
+    
+    private static int MAX_ORDERS = 4;
+    
     /**
      * Name of the joint.
      */
@@ -62,9 +64,8 @@ public class Restaurant {
     }
     private long totalCookTime = 0;
     
-    private boolean isRestaurantOpen = false;
     public boolean getIsRestaurantOpen() {
-        return isRestaurantOpen;
+        return (orderCount < MAX_ORDERS);
     }
 
     /**
@@ -198,7 +199,7 @@ public class Restaurant {
      * @param mealNR
      * @return the prepared meal.
      */
-    private synchronized Meal prepareMeal( int orderNR, int mealNR ) {
+    private Meal prepareMeal( int orderNR, int mealNR ) {
         Recipe recipe = recipes.get( mealNR );
         String mealName = recipe.getName();
         int procTime = recipe.getPreparationTime();
@@ -259,7 +260,7 @@ public class Restaurant {
     }
     private double turnOver = 0.0D;
 
-    public synchronized void serveReadyMeals() {
+    public void serveReadyMeals() {
         printSeparator( "Pleased to serve your meals" );
         while ( this.hasMeals() ) {
             Meal meal = this.getNextMeal();
@@ -283,7 +284,6 @@ public class Restaurant {
     private long startTime = 0;
 
     void closeRestaurant() {
-        isRestaurantOpen = false;
         printSeparator( this.toString() + "is closed", '#' );
         System.out.printf( "total cookingTime = %d milliseconds on %d meals.\n",
                 this.totalCookTime,
@@ -295,7 +295,6 @@ public class Restaurant {
     }
 
     void openRestaurant() {
-        isRestaurantOpen = true;
         startTime = System.currentTimeMillis();
         
         printSeparator( "Welcome, " + this.toString() + " is now open", '$' );
