@@ -5,6 +5,8 @@
  */
 package restaurant;
 
+import java.io.Console;
+
 /**
  *
  * @author Peter Verstappen
@@ -13,6 +15,7 @@ public class RestaurantThreaded {
     
     private volatile Restaurant restaurant;
     private final Customer mrBig;
+    private Object lock;
     
     private final Thread threadTakeOrders;
     private final Thread threadCookMeals;
@@ -22,12 +25,14 @@ public class RestaurantThreaded {
         this.restaurant = restaurant;
         this.mrBig = new Customer(restaurant.getMenuNumbers());
         
+        this.lock = new Object();
+        
         threadTakeOrders = takeOrders();
         threadCookMeals = cookMeals();
         threadServeMeals = serveMeals();
     }
     
-    public synchronized void openRestaurant() {
+    public void openRestaurant() {
         restaurant.printMenu();
         restaurant.openRestaurant();
         restaurant.setCustomer( mrBig );
@@ -47,57 +52,60 @@ public class RestaurantThreaded {
         restaurant.closeRestaurant();
     }
     
-    private synchronized Thread takeOrders() {
+    private Thread takeOrders() {
         //threadOrders deals with the orders of the customer.
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                int numberOfOrders = 4; //(int)(Math.random() * 32);
-                for (int i = 0; i < numberOfOrders; i++) {
+                while(restaurant.getIsRestaurantOpen()) {
                     try {
-                        restaurant.submitOrder(mrBig.wouldLike());
-                        notifyAll();
+                        synchronized (lock) {
+                            restaurant.submitOrder(mrBig.wouldLike());
+                            lock.notifyAll();
+                        }
                     } catch (RestaurantException e) {
                         System.out.println(e.getMessage());
                     }
                 }
             }
-        });
+        }, "ThreadWaiterOrders");
     }
     
-    private synchronized Thread cookMeals() {
+    private Thread cookMeals() {
         //Cook processes the orders and prepares the meals
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!restaurant.hasOrders()) {
-                    try {
-                        wait();
+                synchronized (lock) {
+                    while (!restaurant.hasOrders()) {
+                        try { lock.wait(); }
+                        catch (InterruptedException e) { }
                     }
-                    catch(InterruptedException e) {
-                    }
+                    
+                    restaurant.procesOrders();
+                    lock.notifyAll();
                 }
-                restaurant.procesOrders();
-                notifyAll();
             }
-        });
+        }, "ThreadCook");
     }
     
-    private synchronized Thread serveMeals() {
+    private Thread serveMeals() {
         return new Thread(new Runnable() {
             @Override
             public void run() {
-                while (!restaurant.hasMeals()) {
-                    try {
-                        wait();
-                    }
-                    catch(InterruptedException e) {
+                synchronized (lock) {
+                    while(restaurant.getIsRestaurantOpen()) {
+                        while (!restaurant.hasMeals()) {
+                            try { lock.wait(); }
+                            catch (InterruptedException e) { }
+                        }
+
+                        restaurant.serveReadyMeals();
+                        lock.notifyAll();
                     }
                 }
-                restaurant.serveReadyMeals();
-                notifyAll();
             }
-        });
+        }, "ThreadWaiterServing");
     }
     
 }
