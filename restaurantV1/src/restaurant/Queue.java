@@ -36,7 +36,7 @@ class Queue<T> {
      * Empty test.
      * @return true if queue contains no elements.
      */
-    boolean empty() {
+    synchronized boolean empty() {
         return (head == null);
     }
 
@@ -44,7 +44,7 @@ class Queue<T> {
      * Put one element at tail of queue.
      * @param item to put.
      */
-    void put(T item) {
+    synchronized void put(T item) {
         Node<T> t = tail;
         tail = new Node<T>(item);
         if (empty()) {
@@ -59,7 +59,7 @@ class Queue<T> {
      * This method may fail  an Exception if called on an empty Queue.
      * @return the head element.
      */
-    T get() {
+    synchronized T get() {
         T v = head.item;
         Node<T> t = head.next;
         head = t;
