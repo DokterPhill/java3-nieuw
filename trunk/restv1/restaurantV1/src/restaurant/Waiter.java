@@ -30,13 +30,12 @@ public class Waiter implements Runnable {
      * integer is the meal number from the menu, the second value is the number
      * of servings.
      *
-     * @param ordered array of strings
-     * @return the next order number
      * @throws RestaurantException
      */
     public void submitOrder() throws RestaurantException {
         orderCount = rest.getOrderCount();
         orderCount++;
+        rest.incrementOrderCount();
         Order order = new Order(orderCount);
         for (int i = 0; i < ordered.length; i++) {
             String[] lineParts = ordered[i].split("\\s*,\\s*", 2);
