@@ -17,9 +17,7 @@ import static restaurant.Utils.*;
  * @author hom
  */
 public class Restaurant {
-    
-    private static int MAX_ORDERS = 4;
-    
+
     /**
      * Name of the joint.
      */
@@ -63,10 +61,7 @@ public class Restaurant {
         return this;
     }
     private long totalCookTime = 0;
-    
-    public boolean getIsRestaurantOpen() {
-        return (orderCount < MAX_ORDERS);
-    }
+    private double turnOver = 0.0D;
 
     /**
      * Construct a named restaurant.
@@ -106,53 +101,75 @@ public class Restaurant {
         }
     }
 
-    /**
-     * Place order. An order is a list of strings, each string interpreted as an
-     * integer pair, separated by a comma and possibly white space. The first
-     * integer is the meal number from the menu, the second value is the number
-     * of servings.
-     *
-     * @param ordered array of strings
-     * @return the next order number
-     * @throws RestaurantException
-     */
-    public int submitOrder( String... ordered ) throws RestaurantException {
-        orderCount++;
-        Order order = new Order( orderCount );
-        for ( int i = 0; i < ordered.length; i++ ) {
-            String[] lineParts = ordered[i].split( "\\s*,\\s*", 2 );
-            int mealNR = 0;
-            int servings = 0;
-            try {
-                mealNR = Integer.parseInt( lineParts[0].trim() );
-                servings = Integer.parseInt( lineParts[1].trim() );
-            } catch ( NumberFormatException nfe ) {
-                throw new RestaurantException( nfe );
-            }
-            if ( !recipes.containsKey( mealNR ) ) {
-                // prepare a 401, with as many servings asked.
-                Meal notAvailable = new Meal( orderCount, 404, String.format(
-                        "Menu item %d does not exist.", mealNR ) );
-                for ( int s = 0; s < servings; s++ ) {
-                    System.out.println( customer.serveTo( notAvailable ) );
-                }
-                printWhiteline();
-                //                throw new RestaurantException( "Order nr. " + orderCount
-                //                        + ": a non existing meal (nr.=" + mealNR + ") ordered!" );
-            } else {
-                order.addMeal( mealNR, servings );
-            }
-        }
-        System.out.println( order.toString() );
-        orderQueue.put( order );
-        try {
-            Thread.sleep( 100 );
-        } catch ( InterruptedException ex ) {
-            Logger.getLogger( Restaurant.class.getName() ).
-                    log( Level.SEVERE, null, ex );
-        }
+    public synchronized int getOrderCount() {
         return orderCount;
     }
+
+    public synchronized void setOrderCount(int orderCount) {
+        this.orderCount = orderCount;
+    }
+
+    //redundant to synchronize, but usually would be a good idea
+    public synchronized Map<Integer, Recipe> getRecipes() {
+        return recipes;
+    }
+
+    public void addOrdertoQ(Order order){
+        orderQueue.put(order);
+    }
+    
+        public void submitOrder(String[] ordered){
+            Waiter waiter = new Waiter(this, ordered);
+            waiter.run();
+        }
+    
+    //returnValue necessary?
+//    /**
+//     * Place order. An order is a list of strings, each string interpreted as an
+//     * integer pair, separated by a comma and possibly white space. The first
+//     * integer is the meal number from the menu, the second value is the number
+//     * of servings.
+//     *
+//     * @param ordered array of strings
+//     * @return the next order number
+//     * @throws RestaurantException
+//     */
+//    public int submitOrder( String... ordered ) throws RestaurantException {
+//        orderCount++;
+//        Order order = new Order( orderCount );
+//        for ( int i = 0; i < ordered.length; i++ ) {
+//            String[] lineParts = ordered[i].split( "\\s*,\\s*", 2 );
+//            int mealNR = 0;
+//            int servings = 0;
+//            try {
+//                mealNR = Integer.parseInt( lineParts[0].trim() );
+//                servings = Integer.parseInt( lineParts[1].trim() );
+//            } catch ( NumberFormatException nfe ) {
+//                throw new RestaurantException( nfe );
+//            }
+//            if ( !recipes.containsKey( mealNR ) ) {
+//                // prepare a 401, with as many servings asked.
+//                Meal notAvailable = new Meal( orderCount, 404, String.format(
+//                        "Menu item %d does not exist.", mealNR ) );
+//                for ( int s = 0; s < servings; s++ ) {
+//                    System.out.println( customer.serveTo( notAvailable ) );
+//                }
+//                //                throw new RestaurantException( "Order nr. " + orderCount
+//                //                        + ": a non existing meal (nr.=" + mealNR + ") ordered!" );
+//            } else {
+//                order.addMeal( mealNR, servings );
+//            }
+//        }
+//        System.out.println( order.toString() );
+//        orderQueue.put( order );
+//        try {
+//            Thread.sleep( 100 );
+//        } catch ( InterruptedException ex ) {
+//            Logger.getLogger( Restaurant.class.getName() ).
+//                    log( Level.SEVERE, null, ex );
+//        }
+//        return orderCount;
+//    }
 
     /**
      * Are there orders in work?
@@ -207,11 +224,6 @@ public class Restaurant {
             Thread.sleep( procTime );
             totalCookTime += procTime;
             mealsPreparedCount++;
-            
-            printSeparator("Order " + orderNR, '.');
-            printSeparator("Done! The cook has prepared " + mealName, '.');
-            printWhiteline();
-            
         } catch ( InterruptedException ex ) {
             Logger.getLogger( Restaurant.class.getName() ).
                     log( Level.SEVERE, null, ex );
@@ -254,11 +266,8 @@ public class Restaurant {
         for ( String line : menu ) {
             System.out.println( line );
         }
-        printSeparator( "", '+' );
-        printWhiteline();
-        //printSeparator( "We welcome you at restaurant " + name, '+' );
+        printSeparator( "We welcome you at restaurant " + name, '+' );
     }
-    private double turnOver = 0.0D;
 
     public void serveReadyMeals() {
         printSeparator( "Pleased to serve your meals" );
@@ -268,7 +277,6 @@ public class Restaurant {
             System.out.println( customer.serveTo( meal ) );
         }
         printSeparator( "Bon appetit" );
-        printWhiteline();
 
     }
 
@@ -291,14 +299,11 @@ public class Restaurant {
         System.out.printf( "restaurant %s was open for %d miliseconds\n",
                 this.name, ( System.currentTimeMillis() - startTime ) );
         System.out.printf( "Turnover this round: € %10.2f\n", turnOver );
-        printWhiteline();
     }
 
     void openRestaurant() {
         startTime = System.currentTimeMillis();
-        
         printSeparator( "Welcome, " + this.toString() + " is now open", '$' );
-        printWhiteline();
     }
 
     public Set<Integer> getMenuNumbers() {

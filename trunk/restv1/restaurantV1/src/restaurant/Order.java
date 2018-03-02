@@ -62,14 +62,13 @@ public class Order implements Iterable<OrderLine> {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append( Utils.createSeparator( "Order number " + getNumber(),'%' ) )
+        sb.append( Utils.createSeparator( "order number " + getNumber(),'%' ) )
                 .append( "\n" );
         for ( OrderLine line : this ) {
             sb.append( line.toString() )
                     .append( "\n" );
         }
-        sb.append( Utils.createSeparator( "End of order number " + getNumber(),'%' ) );
-        sb.append( "\n" );
+        sb.append( Utils.createSeparator( "end of order number " + getNumber(),'%' ) );
         return sb.toString();
     }
 }
