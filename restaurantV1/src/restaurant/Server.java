@@ -5,15 +5,36 @@
  */
 package restaurant;
 
+import java.util.Map;
+import static restaurant.Utils.printSeparator;
+
 /**
  *
  * @author Jazz
  */
 public class Server implements Runnable {
 
+    private Restaurant rest;
+
+    public Server(Restaurant rest) {
+        this.rest = rest;
+    }
+
+    public void serveReadyMeals() {
+        printSeparator("Pleased to serve your meals");
+        while (rest.hasMeals()) {
+            Meal meal = rest.getNextMeal();
+            Map<Integer, Recipe> recipes = rest.getRecipes();
+            rest.increaseTurnover(recipes.get(meal.getNumber()).getPrice());
+            System.out.println(rest.getCustomer().serveTo(meal));
+        }
+        printSeparator("Bon appetit");
+
+    }
+
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        this.serveReadyMeals();
     }
-    
+
 }

@@ -105,13 +105,21 @@ public class Restaurant {
         return orderCount;
     }
 
-    public synchronized void setOrderCount(int orderCount) {
-        this.orderCount = orderCount;
+    public synchronized void incrementOrderCount() {
+        orderCount++;
     }
 
     //redundant to synchronize, but usually would be a good idea
     public synchronized Map<Integer, Recipe> getRecipes() {
         return recipes;
+    }
+    
+    public synchronized void addToCookTime(long time){
+        totalCookTime += time;
+    }
+    
+    public synchronized void incrementMealsPrepared(){
+        mealsPreparedCount++;
     }
 
     public void addOrdertoQ(Order order){
@@ -186,51 +194,77 @@ public class Restaurant {
      * @return info for the next order
      *
      */
-    public String getNextOrder() {
+    public synchronized String getNextOrder() {
         return orderQueue.get().toString();
     }
 
-    /**
-     * Process the orders in FIFO order.
-     */
-    public void procesOrders() {
-        while ( !orderQueue.empty() ) {
-            Order order = orderQueue.get();
-            int orderNR = order.getNumber();
-            for ( OrderLine ol : order ) { //while (order.hasOrderLines()) {
-                //OrderLine ol = order.getOrderLine();
-                int mealNR = ol.getMealNR();
-                int persons = ol.getPersons();
-                for ( int p = 0; p < persons; p++ ) {
-                    this.mealsReadyQueue.put( this.
-                            prepareMeal( orderNR, mealNR ) );
-                }
-            }
-        }
+    public synchronized boolean orderQEmpty(){
+        return orderQueue.empty();
     }
-
-    /**
-     * Prepares a meal according to recipe (preparation time).
-     *
-     * @param orderNR
-     * @param mealNR
-     * @return the prepared meal.
-     */
-    private Meal prepareMeal( int orderNR, int mealNR ) {
-        Recipe recipe = recipes.get( mealNR );
-        String mealName = recipe.getName();
-        int procTime = recipe.getPreparationTime();
-        try {
-            Thread.sleep( procTime );
-            totalCookTime += procTime;
-            mealsPreparedCount++;
-        } catch ( InterruptedException ex ) {
-            Logger.getLogger( Restaurant.class.getName() ).
-                    log( Level.SEVERE, null, ex );
-        }
-        return new Meal( orderNR, mealNR, mealName );
+    
+    public Order returnOrder(){
+        return orderQueue.get();
     }
+    
+    public synchronized void addToReadyQ(Meal meal){
+        mealsReadyQueue.put(meal);
+    }
+    
+    public synchronized void increaseTurnover(double turnover){
+        this.turnOver += turnover;
+    }
+    
+    public void procesOrders(){
+        Cook cook = new Cook(this);
+        cook.run();
+    }
+    
+//    /**
+//     * Process the orders in FIFO order.
+//     */
+//    public void procesOrders() {
+//        while ( !orderQueue.empty() ) {
+//            Order order = orderQueue.get();
+//            int orderNR = order.getNumber();
+//            for ( OrderLine ol : order ) { //while (order.hasOrderLines()) {
+//                //OrderLine ol = order.getOrderLine();
+//                int mealNR = ol.getMealNR();
+//                int persons = ol.getPersons();
+//                for ( int p = 0; p < persons; p++ ) {
+//                    this.mealsReadyQueue.put( this.
+//                            prepareMeal( orderNR, mealNR ) );
+//                }
+//            }
+//        }
+//    }
 
+//    /**
+//     * Prepares a meal according to recipe (preparation time).
+//     *
+//     * @param orderNR
+//     * @param mealNR
+//     * @return the prepared meal.
+//     */
+//    private Meal prepareMeal( int orderNR, int mealNR ) {
+//        Recipe recipe = recipes.get( mealNR );
+//        String mealName = recipe.getName();
+//        int procTime = recipe.getPreparationTime();
+//        try {
+//            Thread.sleep( procTime );
+//            totalCookTime += procTime;
+//            mealsPreparedCount++;
+//        } catch ( InterruptedException ex ) {
+//            Logger.getLogger( Restaurant.class.getName() ).
+//                    log( Level.SEVERE, null, ex );
+//        }
+//        return new Meal( orderNR, mealNR, mealName );
+//    }
+
+        public void serveReadyMeals(){
+            Server server = new Server(this);
+            server.run();
+        }
+    
     /**
      * Is there anything to serve?
      *
@@ -246,7 +280,7 @@ public class Restaurant {
      *
      * @return information of the next meal belonging to a certain order
      */
-    public Meal getNextMeal() {
+    public synchronized Meal getNextMeal() {
 //        try {
 //            Thread.sleep( 150 );
 //        } catch ( InterruptedException ex ) {
@@ -269,16 +303,16 @@ public class Restaurant {
         printSeparator( "We welcome you at restaurant " + name, '+' );
     }
 
-    public void serveReadyMeals() {
-        printSeparator( "Pleased to serve your meals" );
-        while ( this.hasMeals() ) {
-            Meal meal = this.getNextMeal();
-            turnOver += recipes.get( meal.getNumber() ).getPrice();
-            System.out.println( customer.serveTo( meal ) );
-        }
-        printSeparator( "Bon appetit" );
-
-    }
+//    public void serveReadyMeals() {
+//        printSeparator( "Pleased to serve your meals" );
+//        while ( this.hasMeals() ) {
+//            Meal meal = this.getNextMeal();
+//            turnOver += recipes.get( meal.getNumber() ).getPrice();
+//            System.out.println( customer.serveTo( meal ) );
+//        }
+//        printSeparator( "Bon appetit" );
+//
+//    }
 
     /**
      * String representation of the restaurant.
